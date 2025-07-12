@@ -5,14 +5,15 @@ import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 //only server-side code can use this directive
 
 // **Create account flow**
-//1. Get user email and fullname from the form
+//1. Get user email and fullName from the form
 //2. Check if user already exists by email
 //3. If user exists, send email OTP to the user
-//4. If user does not exist, create a new user account with the email and fullname
+//4. If user does not exist, create a new user account with the email and fullName
 //5. Send email OTP to the user
 //6. Verify the OTP and complete the account creation process
 //7. Redirect the user to the dashboard or home page
@@ -45,10 +46,10 @@ export const sendEmailOtp = async (email: string) => {
 };
 
 export const createAccount = async ({
-  fullname,
+  fullName,
   email,
 }: {
-  fullname: string;
+  fullName: string;
   email: string;
 }) => {
   const existingUser = await getUserByEmail(email);
@@ -64,7 +65,7 @@ export const createAccount = async ({
       appwriteConfig.userCollectionId,
       ID.unique(),
       {
-        fullname,
+        fullName,
         email,
         avatar:
           "https://media.istockphoto.com/id/1397922741/vector/default-avatar-like-icon-for-sns.jpg?s=612x612&w=0&k=20&c=kUI4qfHAb0wv4oPoCzcTNlsnV4ezI3Z4TmvEe66-u_c=",
@@ -122,5 +123,42 @@ export const getCurrentUser = async () => {
     return parseStringify(user.documents[0]);
   } catch (error) {
     handleError(error, "Failed to get current user");
+  }
+};
+
+/** 
+ * 1. Create a Logout Endpoint
+　　2. Delete the Current Session
+　　3. Clear Session Cookies
+   4. Redirect the User
+*/
+export const signOutUser = async () => {
+  const { account } = await createSessionClient();
+
+  try {
+    await account.deleteSession("current");
+    (await cookies()).delete("appwrite_session");
+  } catch (error) {
+    handleError(error, "Failed to sign out user");
+  } finally {
+    redirect("/sign-in");
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  const { account } = await createSessionClient();
+
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    //If user exists, send OTP
+    if (existingUser) {
+      await sendEmailOtp(email);
+      return parseStringify({ accountId: existingUser.accountId });
+    }
+
+    return parseStringify({ accountId: null, error: "User not found" });
+  } catch (error) {
+    handleError(error, "Failed to sign out user");
   }
 };

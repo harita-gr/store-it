@@ -17,6 +17,7 @@ import { navItems } from "@/constants";
 import { cn } from "@/lib/utils";
 import FileUploader from "./FileUploader";
 import { Button } from "./ui/button";
+import { signOutUser } from "@/lib/actions/user.action";
 
 interface Props {
   ownerId: string;
