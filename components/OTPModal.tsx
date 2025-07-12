@@ -19,7 +19,6 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { sendEmailOtp, verifyEmailOtp } from "@/lib/actions/user.action";
 import { useRouter } from "next/navigation";
-import { send } from "process";
 
 const OTPModal = ({
   accountId,
