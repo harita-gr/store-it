@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "media.istockphoto.com",
+        hostname: "fra.cloud.appwrite.io",
       },
       {
         protocol: "https",
-        hostname: "cloud.appwrite.io",
+        hostname: "media.istockphoto.com",
       },
     ],
   },
