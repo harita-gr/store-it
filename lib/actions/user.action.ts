@@ -88,7 +88,7 @@ export const verifySecret = async ({
   password: string;
 }) => {
   try {
-    const { account } = await createAdminClient();
+    const { account } = await createSessionClient();
 
     const session = await account.createSession(accountId, password);
 
@@ -122,6 +122,7 @@ export const getCurrentUser = async () => {
     return parseStringify(user.documents[0]);
   } catch (error) {
     console.log(error);
+    return null;
   }
 };
 
