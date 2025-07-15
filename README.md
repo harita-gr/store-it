@@ -1,4 +1,4 @@
-# StoreIt 
+# StoreIt - A storage management solution
 
 A modern, full-stack **Google Drive Clone** built with [Next.js 14](https://nextjs.org/) and [Appwrite](https://appwrite.io/). This app allows users to upload, manage, and preview files in a cloud storage environment — mimicking core functionalities of Google Drive.
 
