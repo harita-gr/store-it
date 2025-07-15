@@ -110,6 +110,11 @@ export const getCurrentUser = async () => {
 
     const result = await account.get();
 
+    if (!result || !result.$id) {
+      console.warn("No session or user ID found");
+      return null;
+    }
+
     const user = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
