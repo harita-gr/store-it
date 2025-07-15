@@ -31,7 +31,7 @@ export const FileDetails = ({ file }: { file: Models.Document }) => {
       <div className="space-y-4 px-2 pt-2">
         <DetailRow label="Format:" value={file.extension} />
         <DetailRow label="Size:" value={convertFileSize(file.size)} />
-        <DetailRow label="Owner:" value={file.owner.fullname} />
+        <DetailRow label="Owner:" value={file.owner.fullName} />
         <DetailRow label="Last edit:" value={formatDateTime(file.$updatedAt)} />
       </div>
     </>

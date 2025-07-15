@@ -32,7 +32,7 @@ const Card = ({ file }: { file: Models.Document }) => {
         />
 
         <p className="caption line-clamp-1 text-light-200">
-          By: {file.owner.fullname}
+          By: {file.owner.fullName}
         </p>
       </div>
     </Link>
