@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/input-otp";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { sendEmailOtp, verifyEmailOtp } from "@/lib/actions/user.action";
+import { sendEmailOTP, verifySecret } from "@/lib/actions/user.action";
 import { useRouter } from "next/navigation";
 
 const OTPModal = ({
@@ -29,14 +29,14 @@ const OTPModal = ({
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const sessionId = await verifyEmailOtp({ accountId, otp });
+      const sessionId = await verifySecret({ accountId, password });
 
       if (sessionId) {
         router.push("/");
@@ -49,7 +49,7 @@ const OTPModal = ({
   };
 
   const handleResendOTP = async () => {
-    await sendEmailOtp(email);
+    await sendEmailOTP({ email });
   };
 
   return (
@@ -73,7 +73,7 @@ const OTPModal = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+        <InputOTP maxLength={6} value={password} onChange={setPassword}>
           <InputOTPGroup>
             <InputOTPSlot index={0} className="shad-otp-slot" />
             <InputOTPSlot index={1} className="shad-otp-slot" />
