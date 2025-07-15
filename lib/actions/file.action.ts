@@ -1,12 +1,17 @@
 "use server";
 
-import { ID, Models, Query } from "node-appwrite";
-import { createAdminClient, createSessionClient } from "../appwrite";
-import { appwriteConfig } from "../appwrite/config";
-import { getCurrentUser, handleError } from "./user.action";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { InputFile } from "node-appwrite/file";
-import { constructFileUrl, getFileType, parseStringify } from "../utils";
+import { appwriteConfig } from "@/lib/appwrite/config";
+import { ID, Models, Query } from "node-appwrite";
+import { constructFileUrl, getFileType, parseStringify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "@/lib/actions/user.action";
+
+const handleError = (error: unknown, message: string) => {
+  console.log(error, message);
+  throw error;
+};
 
 export const uploadFile = async ({
   file,
@@ -15,27 +20,21 @@ export const uploadFile = async ({
   path,
 }: UploadFileProps) => {
   const { storage, databases } = await createAdminClient();
-  // 1. Upload to storage
-  // 2. Update DB
-  // 3. Return the file document with metadata
-  // 4. Revalidate the path to update the file list
 
   try {
     const inputFile = InputFile.fromBuffer(file, file.name);
 
-    // Create a new file in the storage bucket
     const bucketFile = await storage.createFile(
       appwriteConfig.bucketId,
       ID.unique(),
       inputFile
     );
 
-    //meta data for the file
     const fileDocument = {
-      type: getFileType(file.name).type,
+      type: getFileType(bucketFile.name).type,
       name: bucketFile.name,
       url: constructFileUrl(bucketFile.$id),
-      extension: getFileType(file.name).extension,
+      extension: getFileType(bucketFile.name).extension,
       size: bucketFile.sizeOriginal,
       owner: ownerId,
       accountId,
@@ -43,7 +42,6 @@ export const uploadFile = async ({
       bucketFileId: bucketFile.$id,
     };
 
-    //store meta data in the database
     const newFile = await databases
       .createDocument(
         appwriteConfig.databaseId,
@@ -51,16 +49,15 @@ export const uploadFile = async ({
         ID.unique(),
         fileDocument
       )
-      .catch(async (error) => {
-        //if any error occurs while creating the file document, delete the file from the bucket
+      .catch(async (error: unknown) => {
         await storage.deleteFile(appwriteConfig.bucketId, bucketFile.$id);
         handleError(error, "Failed to create file document");
       });
 
-    revalidatePath(path); //refresh the path to update the file list
-    return parseStringify(newFile); //return the newly created file document
+    revalidatePath(path);
+    return parseStringify(newFile);
   } catch (error) {
-    handleError(error, "Failed to upload files");
+    handleError(error, "Failed to upload file");
   }
 };
 
@@ -73,8 +70,8 @@ const createQueries = (
 ) => {
   const queries = [
     Query.or([
-      Query.equal("owner", currentUser.$id),
-      Query.contains("users", currentUser.email),
+      Query.equal("owner", [currentUser.$id]),
+      Query.contains("users", [currentUser.email]),
     ]),
   ];
 
@@ -100,11 +97,11 @@ export const getFiles = async ({
   limit,
 }: GetFilesProps) => {
   const { databases } = await createAdminClient();
+
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      throw new Error("User not found");
-    }
+
+    if (!currentUser) throw new Error("User not found");
 
     const queries = createQueries(currentUser, types, searchText, sort, limit);
 
@@ -113,6 +110,8 @@ export const getFiles = async ({
       appwriteConfig.filesCollectionId,
       queries
     );
+
+    console.log({ files });
     return parseStringify(files);
   } catch (error) {
     handleError(error, "Failed to get files");
